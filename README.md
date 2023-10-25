@@ -24,7 +24,7 @@ Check out `man espeak` or `man espeak-ng` for more details.
 ### `calc.py`
 
 This Python file uses the `sox` command, along with some basic math to calculate the output for adding `0` padding to the WAV file so all files have exactly the same length (in bytes and time).
-Then, strip the headers so that the WAV data is simply raw PCM data.
+Then, strip the headers so that the WAV data is simply [raw PCM data](https://en.wikipedia.org/wiki/Pulse-code_modulation).
 It is up the user what they will do with this data.
 
 If `mediainfo` displays different information than this for `[a-z].wav`, then you may need to change the settings in the constants of `calc.py` to produce the right sized padded/raw files.
@@ -32,7 +32,7 @@ If `mediainfo` displays different information than this for `[a-z].wav`, then yo
 ## TODO
 
 * [ ] Add some tests to verify that bit patterns are indeed concatonated correctly.
-* [ ] Simplify build process for letter `.wav` files.
+* [ ] Simplify build process for each letter `.wav` files.
 * [ ] Eliminate non-Rust dependencies for building the `.wav` files.
   * [ ] `sox` (`calc.py`)
   * [ ] `python` (`calc.py`)
