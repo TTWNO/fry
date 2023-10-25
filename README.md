@@ -1,5 +1,8 @@
 # `fry`
 
+[![crates.io badge](https://img.shields.io/crates/v/fry)](https://crates.io/crates/fry)
+[![docs.rs badge](https://docs.rs/fry/badge.svg)](https://docs.rs/fry)
+
 A very simple, dumb, no-alloc, no-std TTS.
 This comes with a handful of extreme limitation:
 
