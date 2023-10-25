@@ -9,6 +9,8 @@ This comes with a handful of extreme limitation:
 4. It has no output capability. It is up to the user of the library to know where to dump this data.
 5. The audio produced is only 16-bit signed PCM with one channel.
 
+The name is from the term "vocal fry".
+
 ## Building new files
 
 If you'd like to produce new files for the library to use (this is required to change the speed of the speech, for example), then you can use the scripts in `data` to create new files.

@@ -2,6 +2,9 @@
 name = "fry"
 version = "0.0.1"
 edition = "2021"
+description = "A dead-simple, no-alloc, no-std TTS."
+license = "MIT or Apache-2.0"
+repository = "https://github.com/TTWNO/fry"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
