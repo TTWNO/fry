@@ -1,11 +1,20 @@
+use std::mem::size_of;
 use include_data::include_data;
 
 /// The BYTE_SIZE of the files as reported by `ls -l`
 /// All consts defined here will be exactly this value divided by two `u16`s long.
 const BYTE_SIZE: usize = 20810;
 
+type PcmSample = i16;
+
+/// The sample size in bytes of the .wav files.
+const SAMPLE_SIZE: usize = size_of::<PcmSample>();
+
 /// The maximum length of the output buffer in chunks of BYTE_SIZE
 const MAX_LETTERS: usize = 32;
+
+/// Single letter constant length sample (in samples, not bytes)
+const LETTER_SAMPLES: usize = BYTE_SIZE/SAMPLE_SIZE;
 
 /// The maximum length of the output buffer in bytes.
 const MAX_BUFFER_SIZE: usize = BYTE_SIZE * MAX_LETTERS;
@@ -16,7 +25,7 @@ const MAX_BUFFER_SIZE: usize = BYTE_SIZE * MAX_LETTERS;
 /// By default, `espeak` will use little-endian on x86_64.
 macro_rules! import_raw {
   ($var_name:ident, $file_name:literal) => {
-    const $var_name: [u16; BYTE_SIZE/2] = include_data!($file_name);
+    const $var_name: [PcmSample; BYTE_SIZE/2] = include_data!($file_name);
   }
 }
 
@@ -47,7 +56,7 @@ import_raw!(X, "../data/x.raw");
 import_raw!(Y, "../data/y.raw");
 import_raw!(Z, "../data/z.raw");
 
-const fn letter_to_pcm(c: char) -> [u16; BYTE_SIZE/2] {
+const fn letter_to_pcm(c: char) -> [PcmSample; BYTE_SIZE/2] {
   match c {
     'a' => A,
     'b' => B,
@@ -79,8 +88,17 @@ const fn letter_to_pcm(c: char) -> [u16; BYTE_SIZE/2] {
   }
 }
 
-pub fn tts<S: AsRef<str> + IntoIterator<Item = char>>(s: S, buf: &mut [u16; MAX_BUFFER_SIZE]) -> Option<usize> {
-  if s.as_ref().len() > 32 {
+/// Fill a buffer with TTS data.
+/// This is done by character.
+/// It can be done for `s` where s is less less than or equal to `MAX_LETTERS`.
+/// It returns Option<usize>:
+///
+/// * None if `s` is too large.
+/// * Some(usize) if successful, contained value is number of *letters*, not bytes that have been copied to the buffer.
+/// 
+/// If you want the number of bytes, multiply the v in Some(v) by `BYTE_SIZE`.
+pub fn tts<S: AsRef<str>>(s: S, buf: &mut [PcmSample; MAX_BUFFER_SIZE]) -> Option<usize> {
+  if s.as_ref().len() > MAX_LETTERS {
     return None;
   }
   Some(
@@ -95,4 +113,40 @@ pub fn tts<S: AsRef<str> + IntoIterator<Item = char>>(s: S, buf: &mut [u16; MAX_
       offset+1
     })
   )
+}
+
+#[cfg(test)]
+mod tests {
+  use super::MAX_BUFFER_SIZE;
+  use super::tts;
+  use super::BYTE_SIZE;
+  use super::A;
+  use super::PcmSample;
+  use super::LETTER_SAMPLES;
+
+  #[test]
+  fn check_one_letter_str() {
+    let mut buf: [PcmSample; MAX_BUFFER_SIZE] = [0; MAX_BUFFER_SIZE];
+    let conv = String::from("a");
+    let bytes = tts(conv, &mut buf);
+    assert_eq!(bytes.unwrap(), 1);
+    let created_slice = &buf[0..LETTER_SAMPLES];
+    assert_eq!(created_slice.len(), A.len());
+    assert_eq!(created_slice, A);
+  }
+  #[test]
+  fn check_one_word_str() {
+    let mut buf: [PcmSample; MAX_BUFFER_SIZE] = [0; MAX_BUFFER_SIZE];
+    let conv = String::from("hello");
+    let bytes = tts(conv, &mut buf);
+    assert_eq!(bytes.unwrap(), 5);
+  }
+  // NOTE: this will fail since we do not yet support the space character
+  #[test]
+  fn check_multi_word() {
+    let mut buf: [PcmSample; MAX_BUFFER_SIZE] = [0; MAX_BUFFER_SIZE];
+    let conv = String::from("hello world");
+    let bytes = tts(conv, &mut buf);
+    assert_eq!(bytes.unwrap(), 5);
+  }
 }
