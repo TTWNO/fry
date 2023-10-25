@@ -47,4 +47,9 @@ If `mediainfo` displays different information than this for `[a-z].wav`, then yo
   * [ ] Verify number of channels (mono, stereo)
   * [ ] Verify sample rate (22050, 41000, etc.)
   * [ ] Verify PCM width (s16, u16, s32, s8, etc.)
+* [ ] Wrap raw data with `PCM` type, because otherwise test output is WAY too big, generic over:
+  * [ ] bit arrangement (LE, BE)
+  * [ ] number of channels (mono, stereo)
+  * [ ] sample rate (22050, 41000, etc.)
+  * [ ] PCM width (s16, u16, s32, s8, etc.)
 
