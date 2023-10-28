@@ -22,6 +22,6 @@ for (name,length) in nb:
   no_ext = name.split(".")[0]
   print(f"{name}: {padding}...", end="")
   subprocess.run(["sox", name, f"{no_ext}_padd.wav", "pad", "0", f"{padding}"])
-  subprocess.run(["sox", f"{no_ext}_padd.wav", "-t", "raw", "-r", "{SAMPLE_RATE}", "-b", "{BITS}", "-c", "{CHS}", f"{no_ext}.raw"])
+  subprocess.run(["sox", f"{no_ext}_padd.wav", "-t", "raw", "-r", f"{SAMPLE_RATE}", "-b", f"{BITS}", "-c", f"{CHS}", f"{no_ext}.raw"])
   print("done")
 
