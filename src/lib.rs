@@ -55,36 +55,38 @@ import_raw!(W, "../data/w.raw");
 import_raw!(X, "../data/x.raw");
 import_raw!(Y, "../data/y.raw");
 import_raw!(Z, "../data/z.raw");
+import_raw!(SPACE, "../data/space.raw");
 
-const fn letter_to_pcm(c: char) -> [PcmSample; BYTE_SIZE/2] {
+const fn letter_to_pcm(c: char) -> Option<[PcmSample; BYTE_SIZE/2]> {
   match c {
-    'a' => A,
-    'b' => B,
-    'c' => C,
-    'D' => D,
-    'e' => E,
-    'f' => F,
-    'g' => G,
-    'h' => H,
-    'i' => I,
-    'j' => J,
-    'k' => K,
-    'l' => L,
-    'm' => M,
-    'n' => N,
-    'o' => O,
-    'p' => P,
-    'q' => Q,
-    'r' => R,
-    's' => S,
-    't' => T,
-    'u' => U,
-    'v' => V,
-    'w' => W,
-    'x' => X,
-    'y' => Y,
-    'z' => Z,
-    _ => todo!(),
+    'a' => Some(A),
+    'b' => Some(B),
+    'c' => Some(C),
+    'd' => Some(D),
+    'e' => Some(E),
+    'f' => Some(F),
+    'g' => Some(G),
+    'h' => Some(H),
+    'i' => Some(I),
+    'j' => Some(J),
+    'k' => Some(K),
+    'l' => Some(L),
+    'm' => Some(M),
+    'n' => Some(N),
+    'o' => Some(O),
+    'p' => Some(P),
+    'q' => Some(Q),
+    'r' => Some(R),
+    's' => Some(S),
+    't' => Some(T),
+    'u' => Some(U),
+    'v' => Some(V),
+    'w' => Some(W),
+    'x' => Some(X),
+    'y' => Some(Y),
+    'z' => Some(Z),
+    ' ' => Some(SPACE),
+    _ => None
   }
 }
 
@@ -106,7 +108,7 @@ pub fn tts<S: AsRef<str>>(s: S, buf: &mut [PcmSample; MAX_BUFFER_SIZE]) -> Optio
     .as_ref()
     .chars()
     .fold(0, |offset: usize, ch| {
-      letter_to_pcm(ch)
+      letter_to_pcm(ch).unwrap()
         .iter()
         .enumerate()
         .for_each(|(i, pcm)| buf[(offset*BYTE_SIZE)+i] = *pcm);
@@ -141,12 +143,11 @@ mod tests {
     let bytes = tts(conv, &mut buf);
     assert_eq!(bytes.unwrap(), 5);
   }
-  // NOTE: this will fail since we do not yet support the space character
   #[test]
   fn check_multi_word() {
     let mut buf: [PcmSample; MAX_BUFFER_SIZE] = [0; MAX_BUFFER_SIZE];
     let conv = String::from("hello world");
     let bytes = tts(conv, &mut buf);
-    assert_eq!(bytes.unwrap(), 5);
+    assert_eq!(bytes.unwrap(), 11);
   }
 }
