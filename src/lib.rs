@@ -1,4 +1,6 @@
-use std::mem::size_of;
+#![no_std]
+
+use core::mem::size_of;
 use include_data::include_data;
 
 /// The BYTE_SIZE of the files as reported by `ls -l`
@@ -62,7 +64,7 @@ const fn letter_to_pcm(c: char) -> Option<[PcmSample; BYTE_SIZE/2]> {
     'a' => Some(A),
     'b' => Some(B),
     'c' => Some(C),
-    'd' => Some(D),
+    'D' => Some(D),
     'e' => Some(E),
     'f' => Some(F),
     'g' => Some(G),
@@ -108,7 +110,8 @@ pub fn tts<S: AsRef<str>>(s: S, buf: &mut [PcmSample; MAX_BUFFER_SIZE]) -> Optio
     .as_ref()
     .chars()
     .fold(0, |offset: usize, ch| {
-      letter_to_pcm(ch).unwrap()
+      letter_to_pcm(ch)
+        .unwrap()
         .iter()
         .enumerate()
         .for_each(|(i, pcm)| buf[(offset*BYTE_SIZE)+i] = *pcm);
@@ -148,6 +151,6 @@ mod tests {
     let mut buf: [PcmSample; MAX_BUFFER_SIZE] = [0; MAX_BUFFER_SIZE];
     let conv = String::from("hello world");
     let bytes = tts(conv, &mut buf);
-    assert_eq!(bytes.unwrap(), 11);
+    assert_eq!(bytes.unwrap(), 5);
   }
 }
