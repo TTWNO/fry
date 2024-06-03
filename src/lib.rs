@@ -1,6 +1,6 @@
 #![no_std]
 
-use core::mem::size_of;
+//use core::mem::size_of;
 use include_data::include_data;
 
 /// The BYTE_SIZE of the files as reported by `ls -l`
@@ -10,13 +10,13 @@ const BYTE_SIZE: usize = 20810;
 type PcmSample = i16;
 
 /// The sample size in bytes of the .wav files.
-const SAMPLE_SIZE: usize = size_of::<PcmSample>();
+//const SAMPLE_SIZE: usize = size_of::<PcmSample>();
 
 /// The maximum length of the output buffer in chunks of BYTE_SIZE
 const MAX_LETTERS: usize = 32;
 
 /// Single letter constant length sample (in samples, not bytes)
-const LETTER_SAMPLES: usize = BYTE_SIZE / SAMPLE_SIZE;
+//const LETTER_SAMPLES: usize = BYTE_SIZE / SAMPLE_SIZE;
 
 /// The maximum length of the output buffer in bytes.
 const MAX_BUFFER_SIZE: usize = BYTE_SIZE * MAX_LETTERS;
