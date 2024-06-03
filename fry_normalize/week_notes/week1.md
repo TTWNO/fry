@@ -1,5 +1,0 @@
-- Other days and forms should go on Moodle
-- Create a schedule for each week meeting
-- June 20th for a monitor visit (Calgary, Thursday)
-    - Pick time later
-- Meet each week at Monday @ 830am unless otherwise noted
