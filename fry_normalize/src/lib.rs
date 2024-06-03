@@ -193,7 +193,7 @@ mod tests {
 	#[test]
 	fn regex_loads_successfully() {
 		let map = regex_map().unwrap();
-		assert!(map.len() > 0, "The map must contain at least one item");
+		assert!(!map.len().is_empty(), "The map must contain at least one item");
 	}
 	#[test]
 	fn test_number_normalization() {
