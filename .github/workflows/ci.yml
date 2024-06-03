@@ -189,7 +189,7 @@ jobs:
         with:
           toolchain: stable
       - name: Install WASM target(s)
-        run: rustup target add wasm32-wasi && rustup target add wasm32-unknwon-unknown
+        run: rustup target add wasm32-wasi && rustup target add wasm32-unknown-unknown
       - name: Test Normalize Compilation (wasm32-wasi)
         working-directory: fry_normalize
         run: cargo build --all-features --target wasm32-wasi
