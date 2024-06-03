@@ -16,7 +16,7 @@ const SAMPLE_SIZE: usize = size_of::<PcmSample>();
 const MAX_LETTERS: usize = 32;
 
 /// Single letter constant length sample (in samples, not bytes)
-const LETTER_SAMPLES: usize = BYTE_SIZE/SAMPLE_SIZE;
+const LETTER_SAMPLES: usize = BYTE_SIZE / SAMPLE_SIZE;
 
 /// The maximum length of the output buffer in bytes.
 const MAX_BUFFER_SIZE: usize = BYTE_SIZE * MAX_LETTERS;
@@ -26,9 +26,9 @@ const MAX_BUFFER_SIZE: usize = BYTE_SIZE * MAX_LETTERS;
 /// This could fail dramatically if endianess is swapped for some reason.
 /// By default, `espeak` will use little-endian on x86_64.
 macro_rules! import_raw {
-  ($var_name:ident, $file_name:literal) => {
-    const $var_name: [PcmSample; BYTE_SIZE/2] = include_data!($file_name);
-  }
+    ($var_name:ident, $file_name:literal) => {
+        const $var_name: [PcmSample; BYTE_SIZE / 2] = include_data!($file_name);
+    };
 }
 
 import_raw!(A, "../data/a.raw");
@@ -59,37 +59,37 @@ import_raw!(Y, "../data/y.raw");
 import_raw!(Z, "../data/z.raw");
 import_raw!(SPACE, "../data/space.raw");
 
-const fn letter_to_pcm(c: char) -> Option<[PcmSample; BYTE_SIZE/2]> {
-  match c {
-    'a' => Some(A),
-    'b' => Some(B),
-    'c' => Some(C),
-    'D' => Some(D),
-    'e' => Some(E),
-    'f' => Some(F),
-    'g' => Some(G),
-    'h' => Some(H),
-    'i' => Some(I),
-    'j' => Some(J),
-    'k' => Some(K),
-    'l' => Some(L),
-    'm' => Some(M),
-    'n' => Some(N),
-    'o' => Some(O),
-    'p' => Some(P),
-    'q' => Some(Q),
-    'r' => Some(R),
-    's' => Some(S),
-    't' => Some(T),
-    'u' => Some(U),
-    'v' => Some(V),
-    'w' => Some(W),
-    'x' => Some(X),
-    'y' => Some(Y),
-    'z' => Some(Z),
-    ' ' => Some(SPACE),
-    _ => None
-  }
+const fn letter_to_pcm(c: char) -> Option<[PcmSample; BYTE_SIZE / 2]> {
+    match c {
+        'a' => Some(A),
+        'b' => Some(B),
+        'c' => Some(C),
+        'D' => Some(D),
+        'e' => Some(E),
+        'f' => Some(F),
+        'g' => Some(G),
+        'h' => Some(H),
+        'i' => Some(I),
+        'j' => Some(J),
+        'k' => Some(K),
+        'l' => Some(L),
+        'm' => Some(M),
+        'n' => Some(N),
+        'o' => Some(O),
+        'p' => Some(P),
+        'q' => Some(Q),
+        'r' => Some(R),
+        's' => Some(S),
+        't' => Some(T),
+        'u' => Some(U),
+        'v' => Some(V),
+        'w' => Some(W),
+        'x' => Some(X),
+        'y' => Some(Y),
+        'z' => Some(Z),
+        ' ' => Some(SPACE),
+        _ => None,
+    }
 }
 
 /// Fill a buffer with TTS data.
@@ -99,58 +99,53 @@ const fn letter_to_pcm(c: char) -> Option<[PcmSample; BYTE_SIZE/2]> {
 ///
 /// * None if `s` is too large.
 /// * Some(usize) if successful, contained value is number of *letters*, not bytes that have been copied to the buffer.
-/// 
+///
 /// If you want the number of bytes, multiply the v in Some(v) by `BYTE_SIZE`.
 pub fn tts<S: AsRef<str>>(s: S, buf: &mut [PcmSample; MAX_BUFFER_SIZE]) -> Option<usize> {
-  if s.as_ref().len() > MAX_LETTERS {
-    return None;
-  }
-  Some(
-    s
-    .as_ref()
-    .chars()
-    .fold(0, |offset: usize, ch| {
-      letter_to_pcm(ch)
-        .unwrap()
-        .iter()
-        .enumerate()
-        .for_each(|(i, pcm)| buf[(offset*BYTE_SIZE)+i] = *pcm);
-      offset+1
-    })
-  )
+    if s.as_ref().len() > MAX_LETTERS {
+        return None;
+    }
+    Some(s.as_ref().chars().fold(0, |offset: usize, ch| {
+        letter_to_pcm(ch)
+            .unwrap()
+            .iter()
+            .enumerate()
+            .for_each(|(i, pcm)| buf[(offset * BYTE_SIZE) + i] = *pcm);
+        offset + 1
+    }))
 }
 
 #[cfg(test)]
 mod tests {
-  use super::MAX_BUFFER_SIZE;
-  use super::tts;
-  use super::BYTE_SIZE;
-  use super::A;
-  use super::PcmSample;
-  use super::LETTER_SAMPLES;
+    use super::tts;
+    use super::PcmSample;
+    use super::A;
+    use super::BYTE_SIZE;
+    use super::LETTER_SAMPLES;
+    use super::MAX_BUFFER_SIZE;
 
-  #[test]
-  fn check_one_letter_str() {
-    let mut buf: [PcmSample; MAX_BUFFER_SIZE] = [0; MAX_BUFFER_SIZE];
-    let conv = String::from("a");
-    let bytes = tts(conv, &mut buf);
-    assert_eq!(bytes.unwrap(), 1);
-    let created_slice = &buf[0..LETTER_SAMPLES];
-    assert_eq!(created_slice.len(), A.len());
-    assert_eq!(created_slice, A);
-  }
-  #[test]
-  fn check_one_word_str() {
-    let mut buf: [PcmSample; MAX_BUFFER_SIZE] = [0; MAX_BUFFER_SIZE];
-    let conv = String::from("hello");
-    let bytes = tts(conv, &mut buf);
-    assert_eq!(bytes.unwrap(), 5);
-  }
-  #[test]
-  fn check_multi_word() {
-    let mut buf: [PcmSample; MAX_BUFFER_SIZE] = [0; MAX_BUFFER_SIZE];
-    let conv = String::from("hello world");
-    let bytes = tts(conv, &mut buf);
-    assert_eq!(bytes.unwrap(), 5);
-  }
+    #[test]
+    fn check_one_letter_str() {
+        let mut buf: [PcmSample; MAX_BUFFER_SIZE] = [0; MAX_BUFFER_SIZE];
+        let conv = String::from("a");
+        let bytes = tts(conv, &mut buf);
+        assert_eq!(bytes.unwrap(), 1);
+        let created_slice = &buf[0..LETTER_SAMPLES];
+        assert_eq!(created_slice.len(), A.len());
+        assert_eq!(created_slice, A);
+    }
+    #[test]
+    fn check_one_word_str() {
+        let mut buf: [PcmSample; MAX_BUFFER_SIZE] = [0; MAX_BUFFER_SIZE];
+        let conv = String::from("hello");
+        let bytes = tts(conv, &mut buf);
+        assert_eq!(bytes.unwrap(), 5);
+    }
+    #[test]
+    fn check_multi_word() {
+        let mut buf: [PcmSample; MAX_BUFFER_SIZE] = [0; MAX_BUFFER_SIZE];
+        let conv = String::from("hello world");
+        let bytes = tts(conv, &mut buf);
+        assert_eq!(bytes.unwrap(), 5);
+    }
 }
