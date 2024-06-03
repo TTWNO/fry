@@ -3,7 +3,6 @@
 
 extern crate alloc;
 
-use enum_dispatch::enum_dispatch;
 use num2words::{
 	Num2Words,
 	Num2Err,

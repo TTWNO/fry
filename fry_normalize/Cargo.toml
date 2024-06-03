@@ -5,6 +5,5 @@ edition = "2021"
 
 [dependencies]
 num2words = { git = "https://github.com/TTWNO/num2words", branch = "no-std-support" }
-enum_dispatch = "0.3.13"
 regex = "1.10.4"
 num-bigfloat = { version = "1.7.1", default-features = false }
