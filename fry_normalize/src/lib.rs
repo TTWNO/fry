@@ -19,6 +19,8 @@ use core::cell::LazyCell;
 use regex::Regex;
 use num_bigfloat::BigFloat;
 
+/// Asserts that two `&str`s, the first passed through the [`normalize`]
+/// function, and the second compared against the original are equal.
 macro_rules! normalize_check {
 	($string:expr, $result:expr) => {
 		assert_eq!(
