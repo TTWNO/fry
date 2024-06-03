@@ -43,6 +43,7 @@ jobs:
           components: clippy
           toolchain: nightly
       - name: Clippy
+        working-directory: fry_normalize
         run: cargo clippy --tests --workspace --no-deps -- -D warnings 
   tests:
     runs-on: ubuntu-latest
