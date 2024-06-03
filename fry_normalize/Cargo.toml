@@ -4,7 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-serde = { version = "1.0.202", default-features = false, features = ["derive"] }
 num2words = { git = "https://github.com/TTWNO/num2words", branch = "no-std-support" }
 enum_dispatch = "0.3.13"
 regex = "1.10.4"
