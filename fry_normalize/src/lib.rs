@@ -2,6 +2,7 @@
 
 extern crate alloc;
 
+use serde::{Serialize, Deserialize};
 use enum_dispatch::enum_dispatch;
 use num2words::{
 	Num2Words,
@@ -72,7 +73,7 @@ macro_rules! auto_into_enum {
 	}
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum Error {
 	Regex(regex::Error),
 	Num(Num2Err),
