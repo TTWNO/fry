@@ -110,7 +110,7 @@ fn normalize_number(input: &str) -> Result<String, Error> {
 fn normalize_word(word: &str) -> Result<String, Error> {
 	Ok(word.to_string())
 }
-fn normalize_symbol(sym: &str) -> Result<String, Error> {
+fn normalize_symbol(_sym: &str) -> Result<String, Error> {
 	todo!()
 }
 
@@ -152,7 +152,7 @@ mod tests {
 	#[test]
 	fn regex_loads_successfully() {
 		let map = regex_map().unwrap();
-		assert!(map.len() > 0, "The map must contain at least one item");
+		assert!(!map.len().is_empty(), "The map must contain at least one item");
 	}
 	#[test]
 	fn test_number_normalization() {
