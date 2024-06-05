@@ -1,0 +1,10 @@
+Mrs. = misses
+Ms. = mister
+Dr. = doctor
+Dr = drive
+St = street
+St. = saint
+Jr. = junior
+Prof. = professor
+Ave. = avenue
+Ave = avenue
