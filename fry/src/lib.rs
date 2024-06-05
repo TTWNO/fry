@@ -1,5 +1,7 @@
 #![no_std]
 
+use core::fmt::Debug;
+use tracing::{instrument, debug, error};
 use core::mem::size_of;
 use include_data::include_data;
 
@@ -59,12 +61,13 @@ import_raw!(Y, "../../data/y.raw");
 import_raw!(Z, "../../data/z.raw");
 import_raw!(SPACE, "../../data/space.raw");
 
-const fn letter_to_pcm(c: char) -> Option<[PcmSample; BYTE_SIZE/2]> {
+#[instrument]
+fn letter_to_pcm(c: char) -> Option<[PcmSample; BYTE_SIZE/2]> {
   match c {
     'a' => Some(A),
     'b' => Some(B),
     'c' => Some(C),
-    'D' => Some(D),
+    'd' => Some(D),
     'e' => Some(E),
     'f' => Some(F),
     'g' => Some(G),
@@ -88,7 +91,10 @@ const fn letter_to_pcm(c: char) -> Option<[PcmSample; BYTE_SIZE/2]> {
     'y' => Some(Y),
     'z' => Some(Z),
     ' ' => Some(SPACE),
-    _ => None
+    _ => {
+			error!("Character '{}' does not correspond to a pre-recorded sound", c);
+			None
+		}
   }
 }
 
@@ -101,8 +107,10 @@ const fn letter_to_pcm(c: char) -> Option<[PcmSample; BYTE_SIZE/2]> {
 /// * Some(usize) if successful, contained value is number of *letters*, not bytes that have been copied to the buffer.
 /// 
 /// If you want the number of bytes, multiply the v in Some(v) by `BYTE_SIZE`.
-pub fn tts<S: AsRef<str>>(s: S, buf: &mut [PcmSample; MAX_BUFFER_SIZE]) -> Option<usize> {
+#[instrument(ret, skip(buf))]
+pub fn tts<S: AsRef<str> + Debug>(s: S, buf: &mut [PcmSample; MAX_BUFFER_SIZE]) -> Option<usize> {
   if s.as_ref().len() > MAX_LETTERS {
+		error!("The length of the string {} ({} letters) is greater than the maximum amount of letters permitted: {}", s.as_ref(), s.as_ref().len(), MAX_LETTERS);
     return None;
   }
   Some(
@@ -122,12 +130,16 @@ pub fn tts<S: AsRef<str>>(s: S, buf: &mut [PcmSample; MAX_BUFFER_SIZE]) -> Optio
 
 #[cfg(test)]
 mod tests {
+	extern crate alloc;
+
+	use test_log::test;
   use super::MAX_BUFFER_SIZE;
   use super::tts;
   use super::BYTE_SIZE;
   use super::A;
   use super::PcmSample;
   use super::LETTER_SAMPLES;
+	use alloc::string::String;
 
   #[test]
   fn check_one_letter_str() {
@@ -151,6 +163,6 @@ mod tests {
     let mut buf: [PcmSample; MAX_BUFFER_SIZE] = [0; MAX_BUFFER_SIZE];
     let conv = String::from("hello world");
     let bytes = tts(conv, &mut buf);
-    assert_eq!(bytes.unwrap(), 5);
+    assert_eq!(bytes.unwrap(), 11);
   }
 }
