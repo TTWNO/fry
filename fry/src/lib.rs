@@ -31,33 +31,33 @@ macro_rules! import_raw {
   }
 }
 
-import_raw!(A, "../data/a.raw");
-import_raw!(B, "../data/b.raw");
-import_raw!(C, "../data/c.raw");
-import_raw!(D, "../data/d.raw");
-import_raw!(E, "../data/e.raw");
-import_raw!(F, "../data/f.raw");
-import_raw!(G, "../data/g.raw");
-import_raw!(H, "../data/h.raw");
-import_raw!(I, "../data/i.raw");
-import_raw!(J, "../data/j.raw");
-import_raw!(K, "../data/k.raw");
-import_raw!(L, "../data/l.raw");
-import_raw!(M, "../data/m.raw");
-import_raw!(N, "../data/n.raw");
-import_raw!(O, "../data/o.raw");
-import_raw!(P, "../data/p.raw");
-import_raw!(Q, "../data/q.raw");
-import_raw!(R, "../data/r.raw");
-import_raw!(S, "../data/s.raw");
-import_raw!(T, "../data/t.raw");
-import_raw!(U, "../data/u.raw");
-import_raw!(V, "../data/v.raw");
-import_raw!(W, "../data/w.raw");
-import_raw!(X, "../data/x.raw");
-import_raw!(Y, "../data/y.raw");
-import_raw!(Z, "../data/z.raw");
-import_raw!(SPACE, "../data/space.raw");
+import_raw!(A, "../../data/a.raw");
+import_raw!(B, "../../data/b.raw");
+import_raw!(C, "../../data/c.raw");
+import_raw!(D, "../../data/d.raw");
+import_raw!(E, "../../data/e.raw");
+import_raw!(F, "../../data/f.raw");
+import_raw!(G, "../../data/g.raw");
+import_raw!(H, "../../data/h.raw");
+import_raw!(I, "../../data/i.raw");
+import_raw!(J, "../../data/j.raw");
+import_raw!(K, "../../data/k.raw");
+import_raw!(L, "../../data/l.raw");
+import_raw!(M, "../../data/m.raw");
+import_raw!(N, "../../data/n.raw");
+import_raw!(O, "../../data/o.raw");
+import_raw!(P, "../../data/p.raw");
+import_raw!(Q, "../../data/q.raw");
+import_raw!(R, "../../data/r.raw");
+import_raw!(S, "../../data/s.raw");
+import_raw!(T, "../../data/t.raw");
+import_raw!(U, "../../data/u.raw");
+import_raw!(V, "../../data/v.raw");
+import_raw!(W, "../../data/w.raw");
+import_raw!(X, "../../data/x.raw");
+import_raw!(Y, "../../data/y.raw");
+import_raw!(Z, "../../data/z.raw");
+import_raw!(SPACE, "../../data/space.raw");
 
 const fn letter_to_pcm(c: char) -> Option<[PcmSample; BYTE_SIZE/2]> {
   match c {
