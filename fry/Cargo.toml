@@ -10,5 +10,5 @@ repository = "https://github.com/TTWNO/fry"
 
 [dependencies]
 include_data = "1.0.0"
-test-log = { version = "0.2.16", default-features = false, features = ["trace"], path = "../../test-log/" }
+test-log = { version = "0.2.16", default-features = false, features = ["trace"], git = "https://github.com/TTWNO/test-log", branch = "main" }
 tracing = { version = "0.1.40", default-features = false, features = ["attributes"] }

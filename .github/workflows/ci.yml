@@ -9,17 +9,17 @@ on:
     branches:
       - main
 jobs:
-  find-msrv:
-    runs-on: ubuntu-latest
-    outputs:
-      version: ${{ steps.step2.outputs.version }}
-    steps:
-      - uses: actions/checkout@v4
-      - id: step2
-        run: echo "version=`cat Cargo.toml | sed -n 's/rust-version = "\(.*\)"/\1/p'`" >> "$GITHUB_OUTPUT"
+  #find-msrv:
+  #  runs-on: ubuntu-latest
+  #  outputs:
+  #    version: ${{ steps.step2.outputs.version }}
+  #  steps:
+  #    - uses: actions/checkout@v4
+  #    - id: step2
+  #      run: echo "version=`cat Cargo.toml | sed -n 's/rust-version = "\(.*\)"/\1/p'`" >> "$GITHUB_OUTPUT"
   clippy:
     runs-on: ubuntu-latest
-    needs: [rustfmt,no-unused-dependencies,wasm-compatible-common-crate]
+    needs: [rustfmt,no-unused-dependencies,wasm-compatibility]
     name: nightly Clippy
     steps:
       - name: Git checkout
@@ -43,6 +43,7 @@ jobs:
           components: clippy
           toolchain: nightly
       - name: Clippy
+        working-directory: fry_normalize
         run: cargo clippy --tests --workspace --no-deps -- -D warnings 
   tests:
     runs-on: ubuntu-latest
@@ -66,7 +67,7 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: stable
+          toolchain: nightly
       - name: Install Dependencies
         run: |
           sudo apt -y install at-spi2-core systemd
@@ -80,7 +81,7 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: stable
+          toolchain: nightly
           components: rustfmt
       - name: Run formatter
         run: cargo fmt --all --check
@@ -131,54 +132,54 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: stable
+          toolchain: nightly
       - name: Install Cargo Machete
         uses: taiki-e/install-action@cargo-machete
       - name: Check For Unused Dependencies
         run: cargo machete
-  semver-compliance:
-    runs-on: ubuntu-latest
-    needs: [clippy,no-unused-dependencies]
-    steps:
-      - name: Git checkout
-        uses: actions/checkout@v3
-      - name: Cache cargo home
-        uses: actions/cache@v3
-        env:
-          cache-name: cache-cargo-home
-        with:
-          path: |
-            ~/.cargo/bin
-            ~/.cargo/registry/index
-            ~/.cargo/registry/cache
-            ~/.cargo/git/db
-          key: ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-${{ hashFiles('Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: stable
-      - name: Install Semver Checks
-        # no default features so that it uses native Rust TLS instead of trying to link with system TLS.
-        uses: taiki-e/install-action@main
-        with:
-          tool: cargo-semver-checks
-      - name: Check Semver Compliance
-        run: cargo semver-checks check-release -p atspi --default-features
-  msrv-compliance:
-    runs-on: ubuntu-latest
-    needs: [clippy,no-unused-dependencies,find-msrv]
-    steps:
-      - name: install stable toolchain
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: ${{ needs.find-msrv.outputs.version }}
-      - name: Git checkout
-        uses: actions/checkout@v3
-      - name: Check MSRV Compliance
-        run: cargo test --workspace --no-run --all-features
-  wasm-compatiblility:
+  #semver-compliance:
+  #  runs-on: ubuntu-latest
+  #  needs: [clippy,no-unused-dependencies]
+  #  steps:
+  #    - name: Git checkout
+  #      uses: actions/checkout@v3
+  #    - name: Cache cargo home
+  #      uses: actions/cache@v3
+  #      env:
+  #        cache-name: cache-cargo-home
+  #      with:
+  #        path: |
+  #          ~/.cargo/bin
+  #          ~/.cargo/registry/index
+  #          ~/.cargo/registry/cache
+  #          ~/.cargo/git/db
+  #        key: ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-${{ hashFiles('Cargo.lock') }}
+  #        restore-keys: |
+  #          ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-
+  #    - name: Install Rust
+  #      uses: dtolnay/rust-toolchain@master
+  #      with:
+  #        toolchain: nightly
+  #    - name: Install Semver Checks
+  #      # no default features so that it uses native Rust TLS instead of trying to link with system TLS.
+  #      uses: taiki-e/install-action@main
+  #      with:
+  #        tool: cargo-semver-checks
+  #    - name: Check Semver Compliance
+  #      run: cargo semver-checks check-release -p atspi --default-features
+  #msrv-compliance:
+  #  runs-on: ubuntu-latest
+  #  needs: [clippy,no-unused-dependencies,find-msrv]
+  #  steps:
+  #    - name: install stable toolchain
+  #      uses: dtolnay/rust-toolchain@master
+  #      with:
+  #        toolchain: ${{ needs.find-msrv.outputs.version }}
+  #    - name: Git checkout
+  #      uses: actions/checkout@v3
+  #    - name: Check MSRV Compliance
+  #      run: cargo test --workspace --no-run --all-features
+  wasm-compatibility:
     runs-on: ubuntu-latest
     needs: [rustfmt]
     steps:
@@ -187,9 +188,9 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: stable
+          toolchain: nightly
       - name: Install WASM target(s)
-        run: rustup target add wasm32-wasi
+        run: rustup target add wasm32-wasi && rustup target add wasm32-unknown-unknown
       - name: Test Normalize Compilation (wasm32-wasi)
         working-directory: fry_normalize
         run: cargo build --all-features --target wasm32-wasi
@@ -209,7 +210,7 @@ jobs:
       - name: Install nightly
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: stable
+          toolchain: nightly
           components: llvm-tools-preview
       - name: cargo install cargo-llvm-cov
         uses: taiki-e/install-action@cargo-llvm-cov
