@@ -3,6 +3,8 @@
 
 extern crate alloc;
 
+use core::cell::LazyCell;
+use alloc::collections::BTreeMap;
 use num2words::{
 	Num2Words,
 	Num2Err,
@@ -20,15 +22,27 @@ use num_bigfloat::BigFloat;
 
 /// Asserts that two `&str`s, the first passed through the [`normalize`]
 /// function, and the second compared against the original are equal.
+#[cfg(test)]
 macro_rules! normalize_check {
 	($string:expr, $result:expr) => {
 		assert_eq!(
-			normalize($string),
+			$string.split_whitespace().map(TaggedWord::from_str).map(|s| s.normalize()).map(|n| n.to_string()).collect::<Vec<String>>().join(" "),
 			$result.to_string(),
 		);
 	}
 }
 
+#[cfg(test)]
+macro_rules! tagging_check {
+	($string:expr, $result:expr) => {
+		assert_eq!(
+			$string.split_whitespace().map(TaggedWord::from_str).collect::<Vec<TaggedWord>>(),
+			$result,
+		);
+	}
+}
+
+#[cfg(test)]
 macro_rules! regex_check {
 	($regex:expr, $string:expr, $result:expr) => {
 		assert_eq!(
@@ -38,12 +52,12 @@ macro_rules! regex_check {
 	}
 }
 
+#[cfg(test)]
 macro_rules! regex_get_all {
 	($regex:expr, $string:expr) => {
 		{
-			let regex = Regex::new($regex).unwrap();
 			$string.split_whitespace()
-				.filter(|word| if let Some(mch) = regex.find(word) {
+				.filter(|word| if let Some(mch) = $regex.find(word) {
 					mch.start() == 0 && mch.end() == word.len()
 				} else { false })
 				.collect::<Vec<&str>>()
@@ -51,10 +65,25 @@ macro_rules! regex_get_all {
 	}
 }
 
+#[cfg(test)]
 macro_rules! regex_match {
 	($regex:expr, $func:ident, $list:ident) => {
 		{
 			let boxed: Box<dyn TaggingHandler<'static>> = Box::new($func);
+			let set = (
+				Regex::new($regex).unwrap(),
+				boxed
+			);
+			$list.push(set);
+		}
+	}
+}
+
+#[cfg(test)]
+macro_rules! regex_tag {
+	($regex:expr, $func:ident, $list:ident) => {
+		{
+			let boxed: Box<dyn TaggingHandler> = Box::new($func);
 			let set = (
 				Regex::new($regex).unwrap(),
 				boxed
@@ -83,30 +112,6 @@ pub enum Error {
 auto_into_enum!(Error, Error::Regex, regex::Error);
 auto_into_enum!(Error, Error::Num, Num2Err);
 
-pub trait NormalizationHandler<'a> {
-	fn normalize(&self, input: &'a str) -> TaggedWord<'a>;
-}
-impl<'a, F> NormalizationHandler<'a> for F
-where
-		F: Fn(&'a str) -> Result<TaggedWord<'a>, Error> {
-	fn normalize(&self, input: &'a str) -> TaggedWord<'a> {
-		self(input).unwrap_or(TaggedWord::Word(input))
-	}
-}
-
-pub trait TaggingHandler<'a> {
-	fn tag(&self, input: &'a str) -> TaggedWord<'a>;
-}
-impl<'a, F> TaggingHandler<'a> for F
-where
-		F: Fn(&'a str) -> Result<TaggedWord<'a>, Error> {
-	fn tag(&self, input: &'a str) -> TaggedWord<'a> {
-		self(input).unwrap_or(TaggedWord::Word(input))
-	}
-}
-
-type TaggingItems<'a> = Vec<(Regex, Box<dyn TaggingHandler<'a>>)>;
-
 fn normalize_number(input: &str) -> Result<TaggedWord, Error> {
 	let ordinal = input.ends_with("th") || input.ends_with("st") || input.ends_with("nd");
 	let currency = input.starts_with("$");
@@ -119,70 +124,101 @@ fn normalize_number(input: &str) -> Result<TaggedWord, Error> {
 	if ordinal {
 		ntw = ntw.ordinal();
 	}
-	Ok(TaggedWord::Number(ntw))
+	Ok(TaggedWord::Number(ntw.to_words()?))
 }
 fn normalize_word(word: &str) -> Result<TaggedWord, Error> {
-	Ok(TaggedWord::Word(word))
+	Ok(TaggedWord::Word(word.to_string()))
+}
+fn normalize_abbr(word: &str) -> Result<TaggedWord, Error> {
+    if let Some(abbr) = ABBR_DICT.get(word) {
+        Ok(TaggedWord::Abbr(abbr.to_string()))
+    } else {
+        Ok(TaggedWord::Word(word.to_string()))
+    }
 }
 fn normalize_symbol(sym: &str) -> Result<TaggedWord, Error> {
-	todo!()
+	Ok(TaggedWord::Word(
+    sym.chars().map(|c| c.to_uppercase().to_string()).collect::<Vec<String>>().join(".")
+  ))
+}
+macro_rules! regex_m {
+    ($reg:expr, $variant:path, $word:ident) => {
+        if let Some(mch) = $reg.find($word) {
+            if mch.start() == 0 && mch.end() == $word.len() {
+                return $variant($word.to_string());
+            }
+        }
+    }
 }
 
-const NUMBER_REGEX: &str = "\\$?[0-9,]+((st)|(nd)|(th))?";
-const REGEX_WORD: &str = "[a-zA-Z]?[a-z']+";
+#[derive(Debug, PartialEq)]
+pub enum TaggedWord {
+    Word(String),
+    Number(String),
+    Symbol(String),
+    Abbr(String),
+}
+impl TaggedWord {
+    fn from_str<S: AsRef<str>>(s: S) -> Self {
+        let s: &str = s.as_ref();
+        regex_m!(SYMBOL_REGEX, TaggedWord::Symbol, s);
+        regex_m!(NUMBER_REGEX, TaggedWord::Number, s);
+        if ABBR_DICT.get(s).is_some() {
+            return TaggedWord::Abbr(s.to_string());
+        }
+        TaggedWord::Word(s.to_string())
+    }
+    fn into_plain_word(self) -> Self {
+        match self {
+            Self::Word(word) => Self::Word(word),
+            Self::Number(word) => Self::Word(word),
+            Self::Symbol(word) => Self::Word(word),
+            Self::Abbr(word) => Self::Word(word),
+        }
+    }
+    fn normalize(self) -> Self {
+        match self {
+            Self::Word(word) => Self::Word(word),
+            Self::Number(word) => normalize_number(&word).unwrap_or(Self::Word(word)),
+            Self::Symbol(word) => normalize_symbol(&word).unwrap_or(Self::Word(word)),
+            Self::Abbr(word) => normalize_abbr(&word).unwrap_or(Self::Word(word)),
+        }
+    }
+    fn to_string(self) -> String {
+        match self {
+            Self::Word(word) => word,
+            Self::Number(word) => word,
+            Self::Symbol(word) => word,
+            Self::Abbr(word) => word,
+        }
+    }
+}
+
+const NUMBER_REGEX_STR: &str = "\\$?[0-9,]+((st)|(nd)|(th))?";
+const NUMBER_REGEX: LazyCell<Regex> = LazyCell::new(|| {
+    Regex::new(NUMBER_REGEX_STR).unwrap()
+});
+const WORD_REGEX: &str = "[a-zA-Z]?[a-z']+";
 // All uppercasae words are symbols and are spoken letter by letter
-const SYMBOL_REGEX: &str = "[A-Z.]+";
-const ABBR_LIST: LazyCell<BTreeMap<&'static str, &'static str>> = LazyCell::new(|| {
-	let data = include_str!("../../data/abbr.txt");
-	let mut map = BTreeMap::new();
-	for line in data.lines() {
-		if let Some((def, res)) = line.split_once(" = ") {
-			map.insert(def, res);
-		}
-	}
-	map
+const SYMBOL_REGEX_STR: &str = "[A-Z.]{2,}";
+const SYMBOL_REGEX: LazyCell<Regex> = LazyCell::new(|| {
+    Regex::new(SYMBOL_REGEX_STR).unwrap()
+});
+const ABBR_DICT: LazyCell<BTreeMap<&'static str, &'static str>> = LazyCell::new(|| {
+    let mut abbr_dict = BTreeMap::new();
+    let text = include_str!("../data/abbr.txt");
+    for line in text.lines() {
+        let (from, to) = line.split_once(" = ").unwrap();
+        abbr_dict.insert(from, to);
+    }
+    abbr_dict
 });
 
-fn regex_map() -> Result<TaggingItems<'static>, Error> {
-	let mut resp = Vec::new();
-	regex_match!(NUMBER_REGEX, normalize_number, resp);
-	regex_match!(REGEX_WORD, normalize_word, resp);
-	regex_match!(SYMBOL_REGEX, normalize_symbol, resp);
-	Ok(resp)
-}
 
-#[derive(Debug)]
-pub struct Abbreviation(&'static str, &'static str);
-
-impl Abbreviation {
-	fn from_str(from: &str) -> Option<Self> {
-		ABBR_LIST.get_key_value(from)
-						 .map(move |(k,v)| Abbreviation(k, v))
-	}
-}
-
-#[derive(Debug, Eq, PartialEq)]
-pub enum TaggedWord<'a> {
-	Word(&'a str),
-	Symbol(&'a str),
-	Abbr(&'a str),
-	Number(&'a str),
-}
-
-fn normalize(s: &'static str) -> Vec<TaggedWord> {
-	let rm = regex_map().unwrap();
-	s.split_whitespace()
-		.map(|word| {
-			for (regex, func) in rm.iter() {
-				if let Some(mtc) = regex.find(word) {
-					if mtc.start() == 0 && mtc.end() == word.len() {
-						return func.tag(word);
-					}
-				}
-			}
-			TaggedWord::Word(word)
-		})
-		.collect::<Vec<TaggedWord>>()
+fn tag_words(input: &str) -> Vec<TaggedWord> {
+    input.split_whitespace()
+        .map(|word| TaggedWord::from_str(word))
+        .collect::<Vec<TaggedWord>>()
 }
 
 #[cfg(test)]
@@ -192,9 +228,38 @@ mod tests {
 
 	#[test]
 	fn regex_loads_successfully() {
-		let map = regex_map().unwrap();
-		assert!(!map.is_empty(), "The map must contain at least one item");
+		//let map = regex_map().unwrap();
+		//assert!(!map.is_empty(), "The map must contain at least one item");
 	}
+#[test]
+  fn test_tagging() {
+      tagging_check!("Dr. Kaur is my Prof.",
+        vec![
+            TaggedWord::Abbr("Dr.".to_string()),
+            TaggedWord::Word("Kaur".to_string()),
+            TaggedWord::Word("is".to_string()),
+            TaggedWord::Word("my".to_string()),
+            TaggedWord::Abbr("Prof.".to_string()),
+        ]
+    );
+      tagging_check!("I am 4096 years old",
+        vec![
+            TaggedWord::Word("I".to_string()),
+            TaggedWord::Word("am".to_string()),
+            TaggedWord::Number("4096".to_string()),
+            TaggedWord::Word("years".to_string()),
+            TaggedWord::Word("old".to_string()),
+        ]
+    );
+      tagging_check!("He went to MIT",
+        vec![
+            TaggedWord::Word("He".to_string()),
+            TaggedWord::Word("went".to_string()),
+            TaggedWord::Word("to".to_string()),
+            TaggedWord::Symbol("MIT".to_string()),
+        ]
+    );
+  }
 	#[test]
 	fn test_number_normalization() {
 		normalize_check!("I am 4096 years old", "I am four thousand and ninety-six years old");
