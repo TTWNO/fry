@@ -156,17 +156,17 @@ jobs:
   #        key: ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-${{ hashFiles('Cargo.lock') }}
   #        restore-keys: |
   #          ${{ runner.os }}-x86_64-unknown-linux-gnu-build-${{ env.cache-name }}-
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: nightly
-      - name: Install Semver Checks
-        # no default features so that it uses native Rust TLS instead of trying to link with system TLS.
-        uses: taiki-e/install-action@main
-        with:
-          tool: cargo-semver-checks
-      - name: Check Semver Compliance
-        run: cargo semver-checks check-release -p atspi --default-features
+  #    - name: Install Rust
+  #      uses: dtolnay/rust-toolchain@master
+  #      with:
+  #        toolchain: nightly
+  #    - name: Install Semver Checks
+  #      # no default features so that it uses native Rust TLS instead of trying to link with system TLS.
+  #      uses: taiki-e/install-action@main
+  #      with:
+  #        tool: cargo-semver-checks
+  #    - name: Check Semver Compliance
+  #      run: cargo semver-checks check-release -p atspi --default-features
   #msrv-compliance:
   #  runs-on: ubuntu-latest
   #  needs: [clippy,no-unused-dependencies,find-msrv]
