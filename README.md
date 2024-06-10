@@ -34,6 +34,12 @@ It is up the user what they will do with this data.
 
 If `mediainfo` displays different information than this for `[a-z].wav`, then you may need to change the settings in the constants of `calc.py` to produce the right sized padded/raw files.
 
+## `fry_normalize`
+
+`fry_normalize` is the beginning of a text-to-speech engine written entirely in Rust.
+This module only normalizes text to be a restircted, known form.
+Check out [`fry_normalize`'s README](./fry_normalize/README.md) for more information.
+
 ## TODO
 
 * [ ] Add some tests to verify that bit patterns are indeed concatonated correctly.

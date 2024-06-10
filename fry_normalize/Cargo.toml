@@ -2,6 +2,7 @@
 name = "fry_normalize"
 version = "0.1.0"
 edition = "2021"
+rust-version = "1.80"
 
 [dependencies]
 num2words = { git = "https://github.com/TTWNO/num2words", branch = "no-std-support" }
