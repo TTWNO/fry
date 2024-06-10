@@ -2,12 +2,13 @@
 
 extern crate alloc;
 
+use derive_more::Display;
 use alloc::collections::BTreeMap;
 use alloc::{
     string::{String, ToString},
     vec::Vec,
 };
-use core::cell::LazyCell;
+use once_cell::sync::Lazy;
 use num2words::{Currency, Num2Err, Num2Words};
 use num_bigfloat::BigFloat;
 use regex::Regex;
@@ -130,16 +131,16 @@ macro_rules! regex_m {
     };
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Display)]
 enum TaggedWord {
     Word(String),
     Number(String),
     Symbol(String),
     Abbr(String),
 }
-impl Into<String> for TaggedWord {
-    fn into(self) -> String {
-        match self {
+impl From<TaggedWord> for String {
+    fn from(tw: TaggedWord) -> String {
+        match tw {
             TaggedWord::Word(word) => word,
             TaggedWord::Number(word) => word,
             TaggedWord::Symbol(word) => word,
@@ -159,29 +160,21 @@ impl TaggedWord {
     }
     fn normalize(self) -> Self {
         match self {
-            Self::Word(ref word) => normalize_word(&word),
-            Self::Number(ref word) => normalize_number(&word),
-            Self::Symbol(ref word) => normalize_symbol(&word),
-            Self::Abbr(ref word) => normalize_abbr(&word),
+            Self::Word(ref word) => normalize_word(word),
+            Self::Number(ref word) => normalize_number(word),
+            Self::Symbol(ref word) => normalize_symbol(word),
+            Self::Abbr(ref word) => normalize_abbr(word),
         }
         .unwrap_or(Self::Word(self.into()))
-    }
-    fn to_string(self) -> String {
-        match self {
-            Self::Word(word) => word,
-            Self::Number(word) => word,
-            Self::Symbol(word) => word,
-            Self::Abbr(word) => word,
-        }
     }
 }
 
 const NUMBER_REGEX_STR: &str = "\\$?[0-9,]+((st)|(nd)|(th))?";
-const NUMBER_REGEX: LazyCell<Regex> = LazyCell::new(|| Regex::new(NUMBER_REGEX_STR).unwrap());
+static NUMBER_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(NUMBER_REGEX_STR).unwrap());
 // All uppercasae words are symbols and are spoken letter by letter
 const SYMBOL_REGEX_STR: &str = "[A-Z.]{2,}";
-const SYMBOL_REGEX: LazyCell<Regex> = LazyCell::new(|| Regex::new(SYMBOL_REGEX_STR).unwrap());
-const ABBR_DICT: LazyCell<BTreeMap<&'static str, &'static str>> = LazyCell::new(|| {
+static SYMBOL_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(SYMBOL_REGEX_STR).unwrap());
+static ABBR_DICT: Lazy<BTreeMap<&'static str, &'static str>> = Lazy::new(|| {
     let mut abbr_dict = BTreeMap::new();
     let text = include_str!("../data/abbr.txt");
     for line in text.lines() {

@@ -8,3 +8,5 @@ rust-version = "1.80"
 num2words = { git = "https://github.com/TTWNO/num2words", branch = "no-std-support" }
 regex = "1.10.4"
 num-bigfloat = { version = "1.7.1", default-features = false }
+once_cell = { version = "1.19.0", default-features = false, features = ["critical-section"] }
+derive_more = { version = "0.99.17", default-features = false, features = ["display"] }
