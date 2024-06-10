@@ -4,6 +4,3 @@ members = [
 	"fry",
 	"fry_normalize",
 ]
-
-[package]
-rust-version = "1.80"
