@@ -2,15 +2,15 @@
 
 extern crate alloc;
 
-use derive_more::Display;
 use alloc::collections::BTreeMap;
 use alloc::{
     string::{String, ToString},
     vec::Vec,
 };
-use once_cell::sync::Lazy;
+use derive_more::Display;
 use num2words::{Currency, Num2Err, Num2Words};
 use num_bigfloat::BigFloat;
+use once_cell::sync::Lazy;
 use regex::Regex;
 
 /// Asserts that two `&str`s, the first passed through the [`normalize`]
