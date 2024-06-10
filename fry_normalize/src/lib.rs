@@ -5,7 +5,6 @@ extern crate alloc;
 
 use alloc::collections::BTreeMap;
 use alloc::{
-    boxed::Box,
     string::{String, ToString},
     vec::Vec,
 };
@@ -133,11 +132,21 @@ macro_rules! regex_m {
 }
 
 #[derive(Debug, PartialEq)]
-pub enum TaggedWord {
+enum TaggedWord {
     Word(String),
     Number(String),
     Symbol(String),
     Abbr(String),
+}
+impl Into<String> for TaggedWord {
+    fn into(self) -> String {
+        match self {
+            TaggedWord::Word(word) => word,
+            TaggedWord::Number(word) => word,
+            TaggedWord::Symbol(word) => word,
+            TaggedWord::Abbr(word) => word,
+        }
+    }
 }
 impl TaggedWord {
     fn from_str<S: AsRef<str>>(s: S) -> Self {
@@ -149,21 +158,14 @@ impl TaggedWord {
         }
         TaggedWord::Word(s.to_string())
     }
-    fn into_plain_word(self) -> Self {
-        match self {
-            Self::Word(word) => Self::Word(word),
-            Self::Number(word) => Self::Word(word),
-            Self::Symbol(word) => Self::Word(word),
-            Self::Abbr(word) => Self::Word(word),
-        }
-    }
     fn normalize(self) -> Self {
         match self {
-            Self::Word(word) => Self::Word(word),
-            Self::Number(word) => normalize_number(&word).unwrap_or(Self::Word(word)),
-            Self::Symbol(word) => normalize_symbol(&word).unwrap_or(Self::Word(word)),
-            Self::Abbr(word) => normalize_abbr(&word).unwrap_or(Self::Word(word)),
+            Self::Word(ref word) => normalize_word(&word),
+            Self::Number(ref word) => normalize_number(&word),
+            Self::Symbol(ref word) => normalize_symbol(&word),
+            Self::Abbr(ref word) => normalize_abbr(&word),
         }
+        .unwrap_or(Self::Word(self.into()))
     }
     fn to_string(self) -> String {
         match self {
@@ -177,7 +179,6 @@ impl TaggedWord {
 
 const NUMBER_REGEX_STR: &str = "\\$?[0-9,]+((st)|(nd)|(th))?";
 const NUMBER_REGEX: LazyCell<Regex> = LazyCell::new(|| Regex::new(NUMBER_REGEX_STR).unwrap());
-const WORD_REGEX: &str = "[a-zA-Z]?[a-z']+";
 // All uppercasae words are symbols and are spoken letter by letter
 const SYMBOL_REGEX_STR: &str = "[A-Z.]{2,}";
 const SYMBOL_REGEX: LazyCell<Regex> = LazyCell::new(|| Regex::new(SYMBOL_REGEX_STR).unwrap());
@@ -191,11 +192,14 @@ const ABBR_DICT: LazyCell<BTreeMap<&'static str, &'static str>> = LazyCell::new(
     abbr_dict
 });
 
-fn tag_words(input: &str) -> Vec<TaggedWord> {
+pub fn normalize(input: &str) -> String {
     input
         .split_whitespace()
-        .map(|word| TaggedWord::from_str(word))
-        .collect::<Vec<TaggedWord>>()
+        .map(TaggedWord::from_str)
+        .map(|s| s.normalize())
+        .map(|n| n.to_string())
+        .collect::<Vec<String>>()
+        .join(" ")
 }
 
 #[cfg(test)]
