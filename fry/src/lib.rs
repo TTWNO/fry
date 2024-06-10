@@ -1,9 +1,10 @@
 #![no_std]
 
 use core::fmt::Debug;
+#[cfg(test)]
 use core::mem::size_of;
 use include_data::include_data;
-use tracing::{debug, error, instrument};
+use tracing::{error, instrument};
 
 /// The BYTE_SIZE of the files as reported by `ls -l`
 /// All consts defined here will be exactly this value divided by two `u16`s long.
@@ -12,12 +13,14 @@ const BYTE_SIZE: usize = 20810;
 type PcmSample = i16;
 
 /// The sample size in bytes of the .wav files.
+#[cfg(test)]
 const SAMPLE_SIZE: usize = size_of::<PcmSample>();
 
 /// The maximum length of the output buffer in chunks of BYTE_SIZE
 const MAX_LETTERS: usize = 32;
 
 /// Single letter constant length sample (in samples, not bytes)
+#[cfg(test)]
 const LETTER_SAMPLES: usize = BYTE_SIZE / SAMPLE_SIZE;
 
 /// The maximum length of the output buffer in bytes.
@@ -133,7 +136,6 @@ mod tests {
     use super::tts;
     use super::PcmSample;
     use super::A;
-    use super::BYTE_SIZE;
     use super::LETTER_SAMPLES;
     use super::MAX_BUFFER_SIZE;
     use alloc::string::String;
