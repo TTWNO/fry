@@ -68,15 +68,6 @@ macro_rules! regex_get_all {
     }};
 }
 
-#[cfg(test)]
-macro_rules! regex_tag {
-    ($regex:expr, $func:ident, $list:ident) => {{
-        let boxed: Box<dyn TaggingHandler> = Box::new($func);
-        let set = (Regex::new($regex).unwrap(), boxed);
-        $list.push(set);
-    }};
-}
-
 macro_rules! auto_into_enum {
     ($type:ty, $variant:path, $inner:ty) => {
         impl From<$inner> for $type {
