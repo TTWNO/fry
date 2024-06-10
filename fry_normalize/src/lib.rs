@@ -1,5 +1,4 @@
 #![no_std]
-#![feature(lazy_cell)]
 
 extern crate alloc;
 
