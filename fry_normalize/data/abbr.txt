@@ -1,0 +1,7 @@
+Jr. = junior
+Ave. = avenue
+Dr. = doctor
+Mrs. = misses
+Mr. = mister
+Pt. = part
+Prof. = professor
