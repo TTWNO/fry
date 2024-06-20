@@ -1,0 +1,3 @@
+Site: https://cmusphinx.github.io/
+School: Carnagie Mellon University
+Downloaded from: https://github.com/cmusphinx/pocketsphinx

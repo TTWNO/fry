@@ -2,5 +2,5 @@
 resolver = "2"
 members = [
 	"fry",
-	"fry_normalize",
+	"fry_normalize", "fry_pronounce",
 ]
