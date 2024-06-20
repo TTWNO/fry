@@ -8,7 +8,6 @@ defualt = []
 std = ["once_cell/std"]
 
 [dependencies]
-fry_normalize = { version = "0.1.0", path = "../fry_normalize" }
 once_cell = { version = "1.19.0", default-features = false, features = ["critical-section"] }
 serde = { version = "1.0.203", default-features = false, features = ["alloc", "derive"] }
 
