@@ -8,7 +8,7 @@ use alloc::{
     vec::Vec,
 };
 use once_cell::sync::Lazy;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Eq, PartialEq, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "UPPERCASE")]
@@ -52,7 +52,7 @@ pub enum Sound {
     W,
     Y,
     Z,
-    ZH
+    ZH,
 }
 #[derive(Debug)]
 pub enum Error {
@@ -107,13 +107,15 @@ impl TryFrom<&str> for Sound {
     }
 }
 
-
 pub static PRONOUNCIATION_DICT: Lazy<BTreeMap<String, Vec<Sound>>> = Lazy::new(|| {
     let text = include_str!("../data/cmudict-en-us.dict");
     let mut map = BTreeMap::new();
     for line in text.lines() {
-        let (word, pronounciation) = line.split_once(" ").expect("Each line must contain a space");
-        let sounds = pronounciation.split_whitespace()
+        let (word, pronounciation) = line
+            .split_once(" ")
+            .expect("Each line must contain a space");
+        let sounds = pronounciation
+            .split_whitespace()
             .map(|sound| Sound::try_from(sound).expect("Invalid sound"))
             .collect();
         map.insert(word.to_string(), sounds);
