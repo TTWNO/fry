@@ -2,11 +2,14 @@
 name = "fry_normalize"
 version = "0.1.0"
 edition = "2021"
-rust-version = "1.80"
+
+[features]
+default = []
+std = ["once_cell/std"]
 
 [dependencies]
 num2words = { git = "https://github.com/TTWNO/num2words", branch = "no-std-support" }
-regex = "1.10.4"
+regex = { version = "1.10.4", default-features = false }
 num-bigfloat = { version = "1.7.1", default-features = false }
 once_cell = { version = "1.19.0", default-features = false, features = ["critical-section"] }
 derive_more = { version = "0.99.17", default-features = false, features = ["display"] }
