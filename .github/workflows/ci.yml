@@ -68,9 +68,6 @@ jobs:
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: nightly
-      - name: Install Dependencies
-        run: |
-          sudo apt -y install at-spi2-core systemd
       - name: Run Tests
         run: cargo test --workspace --all-features -- --nocapture
   rustfmt:
