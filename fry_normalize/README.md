@@ -8,3 +8,7 @@ This module of `fry` attempts to normalize various parts of speech into known fo
 - Numbers
 
 This module requires Rust version `1.80`.
+
+## TODO
+
+- [ ] Enable `std` feature of `once_cell` on archs that support it (like MacOS, Linux, Windows, etc.)
